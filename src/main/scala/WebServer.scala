@@ -1,5 +1,6 @@
 import ChatRoom.{ChatMessage, GetChatMessages}
-import akka.actor.{ActorSystem, Identify, Props}
+import ChatRooms.{GetChatRooms, ResponseChatRooms}
+import akka.actor.{ActorRef, ActorSystem, Identify, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.http.scaladsl.model.HttpMethods._
@@ -17,7 +18,8 @@ object WebServer {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
     implicit val executionContext = system.dispatcher
-    val chatRoom = system.actorOf(Props[ChatRoom], ChatRoom.PATH)
+    val chatRooms = system.actorOf(Props[ChatRooms])
+
     var seqId = 0;
     val route =
       path("") {
@@ -26,10 +28,9 @@ object WebServer {
       path("chatRooms") {
         get {
           implicit val timeout = Timeout(5 seconds)
-          println(chatRoom.path)
-          val future = system.actorSelection("chatRooms-*") ? new Identify()
-          val response = Await.result(future, timeout.duration)
-          println(response)
+          val future = chatRooms ? new GetChatRooms()
+          val response = Await.result(future, timeout.duration).asInstanceOf[ResponseChatRooms]
+          println(response.chatRoomNames)
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response.toString))
         }
       } ~
@@ -38,7 +39,7 @@ object WebServer {
           parameters("inputMessage","sessionId") { (inputMessage, sessionId) =>
             parameter("lastMsgId") {(lastMsgId) =>
               seqId = seqId+1
-              chatRoom ! ChatMessage(seqId, inputMessage)
+              system.actorSelection("chatRooms/chatRoom") ! ChatMessage(seqId, inputMessage)
               implicit val timeout = Timeout(5 seconds)
               val future = chatRoom ? GetChatMessages(lastMsgId.toLong)
               val response = Await.result(future, timeout.duration).asInstanceOf[String]
