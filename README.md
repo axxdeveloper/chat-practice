@@ -6,8 +6,10 @@ Scala-2.11.8 <br>
 Akka-2.4.1
 
 # How to use
-## Prepare scala and akka environment
-## Run Main.scala
-## Execute command in more than one console: telnet 127.0.0.1 12345
-## Input characters in the console directly, press 'Enter' when you finish your word
-## ChatServer will dispatch all messages input from other console to your console
+* Prepare scala and akka environment
+* Run WebServer.scala
+* Execute browser, Input URL: http://127.0.0.1:8080
+* Input message in text field
+* Messagea will be displayed in textarea
+* You can try to open more browsers to talk
+* Limitation: Only 5 messages will be kept in server, so messages may be missing if there were too many messages
