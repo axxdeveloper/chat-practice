@@ -1,11 +1,32 @@
 <html>
+<head>
+    <script lang="javascript">
+        function post(path, params) {
+            var xhr = new XMLHttpRequest();
+            path += "?" + params
+            xhr.open("post", encodeURI(path), true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                console.log(this.responseText);
+            };
+            console.log(path)
+            xhr.send();
+        }
+        function sendMessage() {
+            var inputMessageContent = document.getElementById('inputMessage').value;
+            var params = "inputMessage=" + inputMessageContent;
+            post('/chat',params)
+        }
+    </script>
+</head>
 <body>
-<div id="chatRoomContent">
-    <textarea rows="15" cols="50" id="aboutDescription" style="resize: none;">chat messages</textarea>
+<div>
+    <textarea rows="15" cols="50" id="chatRoomMessages" style="resize: none;">chat messages</textarea>
 </div>
-<div id="inputMessage">
-    <input type="text" value="messages from chatRoom" />
-    <input type="button" value="Send" />
+<div>
+    <form action=""></form>
+    <input type="text" id="inputMessage" value="messages from chatRoom" />
+    <input type="button" value="Send" onclick="sendMessage()" />
 </div>
 </body>
 </html>
