@@ -1,12 +1,13 @@
 import ChatRoom.{ChatMessage, GetChatMessages}
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorSystem, Identify, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.http.scaladsl.model.HttpMethods._
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
@@ -21,6 +22,16 @@ object WebServer {
     val route =
       path("") {
         getFromResource("index.html")
+      } ~
+      path("chatRooms") {
+        get {
+          implicit val timeout = Timeout(5 seconds)
+          println(chatRoom.path)
+          val future = system.actorSelection("chatRooms-*") ? new Identify()
+          val response = Await.result(future, timeout.duration)
+          println(response)
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response.toString))
+        }
       } ~
       path("chat") {
         post {

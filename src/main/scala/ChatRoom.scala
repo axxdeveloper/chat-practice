@@ -4,13 +4,13 @@ import akka.actor.{Actor, ActorRef, Props}
 import scala.collection.mutable
 
 object ChatRoom {
-  val PATH = "chat-room"
+  val PATH = "chatRooms"
   case class ChatMessage(seqId:Long, message:String)
   case class CachedChatMessage(seqId:Long, message:String)
   case class GetChatMessages(lastMsgId:Long)
 }
 
-class ChatRoom extends Actor {
+class ChatRoom(name:String) extends Actor {
 
   var seqId = 0;
   var cachedChatMessages = new mutable.Queue[CachedChatMessage]
