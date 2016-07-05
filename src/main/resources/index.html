@@ -1,32 +1,60 @@
 <html>
 <head>
     <script lang="javascript">
+        var sessionId = guid()
+        var lastMsgId = -1;
+        function guid() {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+            }
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                    s4() + '-' + s4() + s4() + s4();
+        }
         function post(path, params) {
             var xhr = new XMLHttpRequest();
             path += "?" + params
             xhr.open("post", encodeURI(path), true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
-                console.log(this.responseText);
+                var chatRoomMessages = document.getElementById('chatRoomMessages');
+                lastMsgId = this.responseText.substr(0,this.responseText.indexOf(":"))
+                chatRoomMessages.value += this.responseText.substr(this.responseText.indexOf(":")+1)
+                chatRoomMessages.scrollTop = chatRoomMessages.scrollHeight;
+            };
+            console.log(path)
+            xhr.send();
+        }
+        function getMessage() {
+            var xhr = new XMLHttpRequest();
+            var path = "getMessage?lastMsgId=" + lastMsgId;
+            xhr.open("get", encodeURI(path), true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                var chatRoomMessages = document.getElementById('chatRoomMessages');
+                lastMsgId = this.responseText.substr(0,this.responseText.indexOf(":"))
+                chatRoomMessages.value += this.responseText.substr(this.responseText.indexOf(":")+1)
+                chatRoomMessages.scrollTop = chatRoomMessages.scrollHeight;
             };
             console.log(path)
             xhr.send();
         }
         function sendMessage() {
             var inputMessageContent = document.getElementById('inputMessage').value;
-            var params = "inputMessage=" + inputMessageContent;
+            var params = "inputMessage=" + inputMessageContent + "&sessionId=" + sessionId + "&lastMsgId=" + lastMsgId;
             post('/chat',params)
         }
     </script>
 </head>
-<body>
+<body onload="setInterval(getMessage, 3000)">
 <div>
-    <textarea rows="15" cols="50" id="chatRoomMessages" style="resize: none;">chat messages</textarea>
+    <textarea rows="15" cols="120" id="chatRoomMessages" style="resize: none;">chat messages</textarea>
 </div>
 <div>
-    <form action=""></form>
     <input type="text" id="inputMessage" value="messages from chatRoom" />
     <input type="button" value="Send" onclick="sendMessage()" />
+    <input type="button" value="Get" onclick="getMessage()" />
 </div>
 </body>
 </html>
