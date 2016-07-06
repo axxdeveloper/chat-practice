@@ -30,8 +30,9 @@ object WebServer {
           implicit val timeout = Timeout(5 seconds)
           val future = chatRooms ? new GetChatRooms()
           val response = Await.result(future, timeout.duration).asInstanceOf[ResponseChatRooms]
-          println(response.chatRoomNames)
-          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response.toString))
+          var responseText = ""
+          response.chatRoomNames.foreach(responseText += _)
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, responseText))
         }
       } ~
       path("chat") {
@@ -39,9 +40,9 @@ object WebServer {
           parameters("inputMessage","sessionId") { (inputMessage, sessionId) =>
             parameter("lastMsgId") {(lastMsgId) =>
               seqId = seqId+1
-              system.actorSelection("chatRooms/chatRoom") ! ChatMessage(seqId, inputMessage)
+              system.actorSelection(chatRooms.path + "/default") ! ChatMessage(seqId, inputMessage)
               implicit val timeout = Timeout(5 seconds)
-              val future = system.actorSelection("chatRooms/default") ? GetChatMessages(lastMsgId.toLong)
+              val future = system.actorSelection(chatRooms.path + "/default") ? GetChatMessages(toLong(lastMsgId).getOrElse(0))
               val response = Await.result(future, timeout.duration).asInstanceOf[String]
               complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response))
             }
@@ -52,7 +53,7 @@ object WebServer {
         get {
           parameter("lastMsgId") {(lastMsgId) =>
             implicit val timeout = Timeout(5 seconds)
-            val future = system.actorSelection("chatRooms/default") ? GetChatMessages(lastMsgId.toLong)
+            val future = system.actorSelection(chatRooms.path + "/default") ? GetChatMessages(toLong(lastMsgId).getOrElse(0))
             val response = Await.result(future, timeout.duration).asInstanceOf[String]
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response))
           }
@@ -61,6 +62,14 @@ object WebServer {
 
     Http().bindAndHandle(route, "0.0.0.0", 8080)
     println(s"Server online at http://0.0.0.0:8080/")
+  }
+
+  private def toLong(s:String): Option[Long] = {
+    try {
+      Some(s.toInt)
+    } catch {
+      case e: Exception => None
+    }
   }
 
 }
