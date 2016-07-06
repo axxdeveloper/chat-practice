@@ -4,10 +4,11 @@ import akka.actor.{Actor, ActorRef, Props}
 import scala.collection.mutable
 
 object ChatRoom {
-  val PATH = "chat-room"
   case class ChatMessage(seqId:Long, message:String)
   case class CachedChatMessage(seqId:Long, message:String)
   case class GetChatMessages(lastMsgId:Long)
+
+  def props():Props = Props[ChatRoom]
 }
 
 class ChatRoom extends Actor {
@@ -29,7 +30,7 @@ class ChatRoom extends Actor {
 
   private def dequeueMessageFromQueueToFixedSize(): Unit = {
     while (cachedChatMessages.size > 5) {
-      println("drop old message:" + cachedChatMessages.dequeue)
+      println(self.path.name + ": drop old message:" + cachedChatMessages.dequeue)
     }
   }
 
