@@ -37,16 +37,48 @@
             var params = "inputMessage=" + inputMessageContent + "&lastMsgId=" + lastMsgId;
             request('post', '/chatRooms/' + currentChatRoomContent,params)
         }
+        function reloadChatRooms() {
+            var xhr = new XMLHttpRequest();
+            var path = "chatRooms"
+            xhr.open('get', encodeURI(path), true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                console.log(this.responseText)
+                var chatRoomNames = this.responseText.split(',')
+                var chatRoomNameElmt = document.getElementById('chatRoomName');
+                while (chatRoomNameElmt.options.length > 0) {
+                    chatRoomNameElmt.remove(0);
+                }
+                chatRoomNames.forEach(function(chatRoomNameString) {
+                    if (chatRoomNameString.trim().length > 0) {
+                        console.log(chatRoomNameString);
+                        var option = document.createElement("option");
+                        option.text = chatRoomNameString;
+                        chatRoomNameElmt.add(option);
+                    }
+                })
+            };
+            xhr.send();
+        }
         function createChatRoom() {
             lastMsgId = 0;
             document.getElementById('chatRoomMessages').value = '';
-            var chatRoomNameContent = document.getElementById('chatRoomName').value;
+            var newChatRoomNameContent = document.getElementById('newChatRoomName').value;
+            document.getElementById('currentChatRoom').value = newChatRoomNameContent;
+            request('put', '/chatRooms/' + newChatRoomNameContent, "lastMsgId=0")
+            reloadChatRooms();
+        }
+        function loadChatRoom() {
+            lastMsgId = 0;
+            document.getElementById('chatRoomMessages').value = '';
+            var chatRoomNameElmt = document.getElementById('chatRoomName');
+            var chatRoomNameContent = chatRoomNameElmt.options[chatRoomNameElmt.selectedIndex].text;
             document.getElementById('currentChatRoom').value = chatRoomNameContent;
-            request('put', '/chatRooms/' + chatRoomNameContent, "lastMsgId=0")
+            request('get', '/chatRooms/' + chatRoomNameContent, "lastMsgId=0")
         }
     </script>
 </head>
-<body onload="setInterval(getMessage, 3000)">
+<body onload="setInterval(getMessage, 3000);setInterval(reloadChatRooms, 3000)">
 <div>
     <textarea rows="15" cols="120" id="chatRoomMessages" style="resize: none;">chat messages</textarea>
 </div>
@@ -56,8 +88,12 @@
     <input type="text" id="inputMessage" value="messages from chatRoom" />
     <input type="button" value="Send" onclick="sendMessage()" />
     <input type="button" value="Get" onclick="getMessage()" /><br>
-    <input type="text" id="chatRoomName" value="default" />
-    <input type="button" value="Create or Load" onclick="createChatRoom()" />
+    <input type="text" id="newChatRoomName" />
+    <input type="button" value="Create ChatRoom" onclick="createChatRoom()" /><br>
+    <select id="chatRoomName">
+        <option value="default">default</option>
+    </select>
+    <input type="button" value="Load Chat Room" onclick="loadChatRoom()" /><br>
 </div>
 </body>
 </html>

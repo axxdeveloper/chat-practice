@@ -50,7 +50,7 @@ object WebServer {
         get {
           val response: ResponseChatRooms = getChatRooms
           var responseText = ""
-          response.chatRoomNames.foreach(responseText += _)
+          response.chatRoomNames.foreach(responseText += _ + ",")
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, responseText))
         }
       } ~
