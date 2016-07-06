@@ -1,3 +1,5 @@
+import java.nio.charset.StandardCharsets
+
 import ChatRoom.{ChatMessage, GetChatMessages}
 import ChatRoomLobby.{CreateChatRoom, GetChatRooms, ResponseChatRoom, ResponseChatRooms}
 import akka.actor.{ActorRef, ActorSystem, Identify, Props}
@@ -55,6 +57,9 @@ object WebServer {
         }
       } ~
       path("chatRooms" / Segment) { chatRoom =>
+        if (!StandardCharsets.US_ASCII.newEncoder().canEncode(chatRoom)) {
+          throw new UnsupportedOperationException("don't support chinese words")
+        }
         get {
           parameter("lastMsgId") {(lastMsgId) =>
             val response: String = getChatMessages(chatRoom, lastMsgId)
