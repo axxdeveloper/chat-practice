@@ -1,21 +1,11 @@
 <html>
 <head>
     <script lang="javascript">
-        var sessionId = guid()
         var lastMsgId = -1;
-        function guid() {
-            function s4() {
-                return Math.floor((1 + Math.random()) * 0x10000)
-                        .toString(16)
-                        .substring(1);
-            }
-            return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-                    s4() + '-' + s4() + s4() + s4();
-        }
-        function post(path, params) {
+        function request(method, path, params) {
             var xhr = new XMLHttpRequest();
             path += "?" + params
-            xhr.open("post", encodeURI(path), true);
+            xhr.open(method, encodeURI(path), true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
                 var chatRoomMessages = document.getElementById('chatRoomMessages');
@@ -27,8 +17,9 @@
             xhr.send();
         }
         function getMessage() {
+            var chatRoom = document.getElementById("currentChatRoom").value
             var xhr = new XMLHttpRequest();
-            var path = "getMessage?lastMsgId=" + lastMsgId;
+            var path = "/chatRooms/" + chatRoom + "?lastMsgId=" + lastMsgId;
             xhr.open("get", encodeURI(path), true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
@@ -41,9 +32,17 @@
             xhr.send();
         }
         function sendMessage() {
+            var currentChatRoomContent = document.getElementById('currentChatRoom').value;
             var inputMessageContent = document.getElementById('inputMessage').value;
-            var params = "inputMessage=" + inputMessageContent + "&sessionId=" + sessionId + "&lastMsgId=" + lastMsgId;
-            post('/chat',params)
+            var params = "inputMessage=" + inputMessageContent + "&lastMsgId=" + lastMsgId;
+            request('post', '/chatRooms/' + currentChatRoomContent,params)
+        }
+        function createChatRoom() {
+            lastMsgId = 0;
+            document.getElementById('chatRoomMessages').value = '';
+            var chatRoomNameContent = document.getElementById('chatRoomName').value;
+            document.getElementById('currentChatRoom').value = chatRoomNameContent;
+            request('put', '/chatRooms/' + chatRoomNameContent, "lastMsgId=0")
         }
     </script>
 </head>
@@ -52,9 +51,13 @@
     <textarea rows="15" cols="120" id="chatRoomMessages" style="resize: none;">chat messages</textarea>
 </div>
 <div>
+    Current ChatRoom:
+    <input type="text" readonly="true" id="currentChatRoom" value="default" /><br>
     <input type="text" id="inputMessage" value="messages from chatRoom" />
     <input type="button" value="Send" onclick="sendMessage()" />
-    <input type="button" value="Get" onclick="getMessage()" />
+    <input type="button" value="Get" onclick="getMessage()" /><br>
+    <input type="text" id="chatRoomName" value="default" />
+    <input type="button" value="Create or Load" onclick="createChatRoom()" />
 </div>
 </body>
 </html>

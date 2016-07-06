@@ -7,6 +7,8 @@ object ChatRoom {
   case class ChatMessage(seqId:Long, message:String)
   case class CachedChatMessage(seqId:Long, message:String)
   case class GetChatMessages(lastMsgId:Long)
+
+  def props():Props = Props[ChatRoom]
 }
 
 class ChatRoom extends Actor {
@@ -28,7 +30,7 @@ class ChatRoom extends Actor {
 
   private def dequeueMessageFromQueueToFixedSize(): Unit = {
     while (cachedChatMessages.size > 5) {
-      println("drop old message:" + cachedChatMessages.dequeue)
+      println(self.path + ": drop old message:" + cachedChatMessages.dequeue)
     }
   }
 

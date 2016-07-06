@@ -1,14 +1,17 @@
-import ChatRoomManager.{CreateChatRoom, GetChatRooms, ResponseChatRoom, ResponseChatRooms}
+import ChatRoomLobby.{CreateChatRoom, GetChatRooms, ResponseChatRoom, ResponseChatRooms}
 import akka.actor.{Actor, ActorPath, ActorRef, Props}
 import akka.actor.Actor.Receive
 
-class ChatRoomManager extends Actor {
+class ChatRoomLobby extends Actor {
 
-  val chatRoom = context.actorOf(Props(classOf[ChatRoom]), "default")
+  val chatRoom = context.actorOf(ChatRoom.props(), ChatRoomLobby.defaultChatRoomPathName)
 
   override def receive: Receive = {
     case CreateChatRoom(name) =>
-      val chatRoom = context.child(name).getOrElse( context.actorOf(Props[ChatRoom], name) )
+      context.child(name).getOrElse{
+        println("create chatRoom:" + name)
+        context.actorOf(Props[ChatRoom], name)
+      }
       sender() ! ResponseChatRoom(chatRoom.path.name)
     case GetChatRooms() =>
       var chatRoomNames = Set[String]()
@@ -19,9 +22,13 @@ class ChatRoomManager extends Actor {
   }
 }
 
-object ChatRoomManager {
+object ChatRoomLobby {
   case class CreateChatRoom(name:String)
   case class ResponseChatRoom(chatRoomName:String)
   case class GetChatRooms()
   case class ResponseChatRooms(chatRoomNames:Set[String])
+
+  def props():Props = Props[ChatRoomLobby]
+  val pathName = "chatRoomLobby"
+  val defaultChatRoomPathName = "default"
 }

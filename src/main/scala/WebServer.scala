@@ -1,5 +1,5 @@
 import ChatRoom.{ChatMessage, GetChatMessages}
-import ChatRoomManager.{GetChatRooms, ResponseChatRooms}
+import ChatRoomLobby.{CreateChatRoom, GetChatRooms, ResponseChatRoom, ResponseChatRooms}
 import akka.actor.{ActorRef, ActorSystem, Identify, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpEntity, _}
@@ -18,45 +18,60 @@ object WebServer {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
     implicit val executionContext = system.dispatcher
-    val chatRooms = system.actorOf(Props[ChatRoomManager], "chatRooms")
+    val chatRoomLobby = system.actorOf(ChatRoomLobby.props(), ChatRoomLobby.pathName)
 
-    var seqId = 0;
+    var messageSeqId = 0;
+    def getChatRooms: ResponseChatRooms = {
+      implicit val timeout = Timeout(5 seconds)
+      val future = chatRoomLobby ? new GetChatRooms()
+      val response = Await.result(future, timeout.duration).asInstanceOf[ResponseChatRooms]
+      response
+    }
+    def getChatMessages(chatRoom:String, lastMsgId: String = "0"): String = {
+      implicit val timeout = Timeout(5 seconds)
+      val future = system.actorSelection(chatRoomLobby.path + "/" + chatRoom) ? GetChatMessages(toLong(lastMsgId).getOrElse(0))
+      val response = Await.result(future, timeout.duration).asInstanceOf[String]
+      response
+    }
+    def sendChatMessage(chatRoom:String, inputMessage: String): Unit = {
+      messageSeqId = messageSeqId+1
+      system.actorSelection(chatRoomLobby.path + "/" + chatRoom) ! ChatMessage(messageSeqId, inputMessage)
+    }
+    def createChatRoom(chatRoom: String): ResponseChatRoom = {
+      implicit val timeout = Timeout(5 seconds)
+      val future = chatRoomLobby ? new CreateChatRoom(chatRoom)
+      Await.result(future, timeout.duration).asInstanceOf[ResponseChatRoom]
+    }
     val route =
       path("") {
         getFromResource("index.html")
       } ~
       path("chatRooms") {
         get {
-          implicit val timeout = Timeout(5 seconds)
-          val future = chatRooms ? new GetChatRooms()
-          val response = Await.result(future, timeout.duration).asInstanceOf[ResponseChatRooms]
+          val response: ResponseChatRooms = getChatRooms
           var responseText = ""
           response.chatRoomNames.foreach(responseText += _)
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, responseText))
         }
       } ~
-      path("chat") {
-        post {
-          parameters("inputMessage","sessionId") { (inputMessage, sessionId) =>
-            parameter("lastMsgId") {(lastMsgId) =>
-              seqId = seqId+1
-              system.actorSelection(chatRooms.path + "/default") ! ChatMessage(seqId, inputMessage)
-              implicit val timeout = Timeout(5 seconds)
-              val future = system.actorSelection(chatRooms.path + "/default") ? GetChatMessages(toLong(lastMsgId).getOrElse(0))
-              val response = Await.result(future, timeout.duration).asInstanceOf[String]
-              complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response))
-            }
-          }
-        }
-      } ~
-      path("getMessage") {
+      path("chatRooms" / Segment) { chatRoom =>
         get {
           parameter("lastMsgId") {(lastMsgId) =>
-            implicit val timeout = Timeout(5 seconds)
-            val future = system.actorSelection(chatRooms.path + "/default") ? GetChatMessages(toLong(lastMsgId).getOrElse(0))
-            val response = Await.result(future, timeout.duration).asInstanceOf[String]
+            println("get msg from " + chatRoom)
+            val response: String = getChatMessages(chatRoom, lastMsgId)
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response))
           }
+        } ~
+        post {
+          parameters("inputMessage","lastMsgId") { (inputMessage, lastMsgId) =>
+            println("post msg to " + chatRoom)
+            sendChatMessage(chatRoom, inputMessage)
+            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, getChatMessages(chatRoom, lastMsgId)))
+          }
+        } ~
+        put {
+          createChatRoom(chatRoom)
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, getChatMessages(chatRoom)))
         }
       }
 
