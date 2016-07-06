@@ -9,7 +9,7 @@ object ChatRoom {
   case class GetChatMessages(lastMsgId:Long)
 }
 
-class ChatRoom(val name:String) extends Actor {
+class ChatRoom extends Actor {
 
   var seqId = 0;
   var cachedChatMessages = new mutable.Queue[CachedChatMessage]
