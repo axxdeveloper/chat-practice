@@ -30,7 +30,7 @@ class ChatRoom extends Actor {
 
   private def dequeueMessageFromQueueToFixedSize(): Unit = {
     while (cachedChatMessages.size > 5) {
-      println(self.path + ": drop old message:" + cachedChatMessages.dequeue)
+      println(self.path.name + ": drop old message:" + cachedChatMessages.dequeue)
     }
   }
 

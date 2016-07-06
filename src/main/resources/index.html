@@ -13,7 +13,6 @@
                 chatRoomMessages.value += this.responseText.substr(this.responseText.indexOf(":")+1)
                 chatRoomMessages.scrollTop = chatRoomMessages.scrollHeight;
             };
-            console.log(path)
             xhr.send();
         }
         function getMessage() {
@@ -28,7 +27,6 @@
                 chatRoomMessages.value += this.responseText.substr(this.responseText.indexOf(":")+1)
                 chatRoomMessages.scrollTop = chatRoomMessages.scrollHeight;
             };
-            console.log(path)
             xhr.send();
         }
         function sendMessage() {
@@ -43,7 +41,6 @@
             xhr.open('get', encodeURI(path), true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
-                console.log(this.responseText)
                 var chatRoomNames = this.responseText.split(',')
                 var chatRoomNameElmt = document.getElementById('chatRoomName');
                 while (chatRoomNameElmt.options.length > 0) {
@@ -51,7 +48,6 @@
                 }
                 chatRoomNames.forEach(function(chatRoomNameString) {
                     if (chatRoomNameString.trim().length > 0) {
-                        console.log(chatRoomNameString);
                         var option = document.createElement("option");
                         option.text = chatRoomNameString;
                         chatRoomNameElmt.add(option);
@@ -85,11 +81,13 @@
 <div>
     Current ChatRoom:
     <input type="text" readonly="true" id="currentChatRoom" value="default" /><br>
+    Send a message:
     <input type="text" id="inputMessage" value="messages from chatRoom" />
     <input type="button" value="Send" onclick="sendMessage()" />
     <input type="button" value="Get" onclick="getMessage()" /><br>
-    <input type="text" id="newChatRoomName" />
+    Create a ChatRoom:<input type="text" id="newChatRoomName" />
     <input type="button" value="Create ChatRoom" onclick="createChatRoom()" /><br>
+    Select a ChatRoom:
     <select id="chatRoomName">
         <option value="default">default</option>
     </select>

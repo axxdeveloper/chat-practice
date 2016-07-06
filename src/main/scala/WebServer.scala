@@ -57,14 +57,12 @@ object WebServer {
       path("chatRooms" / Segment) { chatRoom =>
         get {
           parameter("lastMsgId") {(lastMsgId) =>
-            println("get msg from " + chatRoom)
             val response: String = getChatMessages(chatRoom, lastMsgId)
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, response))
           }
         } ~
         post {
           parameters("inputMessage","lastMsgId") { (inputMessage, lastMsgId) =>
-            println("post msg to " + chatRoom)
             sendChatMessage(chatRoom, inputMessage)
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, getChatMessages(chatRoom, lastMsgId)))
           }
