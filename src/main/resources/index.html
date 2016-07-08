@@ -8,6 +8,9 @@
             xhr.open(method, encodeURI(path), true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
+                if (this.readyState != 4 || this.status != 200) {
+                    return;
+                }
                 var chatRoomMessages = document.getElementById('chatRoomMessages');
                 lastMsgId = this.responseText.substr(0,this.responseText.indexOf(":"))
                 chatRoomMessages.value += this.responseText.substr(this.responseText.indexOf(":")+1)
@@ -22,6 +25,9 @@
             xhr.open("get", encodeURI(path), true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
+                if (this.readyState != 4 || this.status != 200) {
+                    return;
+                }
                 var chatRoomMessages = document.getElementById('chatRoomMessages');
                 lastMsgId = this.responseText.substr(0,this.responseText.indexOf(":"))
                 chatRoomMessages.value += this.responseText.substr(this.responseText.indexOf(":")+1)
@@ -41,6 +47,9 @@
             xhr.open('get', encodeURI(path), true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
+                if (this.readyState != 4 || this.status != 200) {
+                    return;
+                }
                 var chatRoomNames = this.responseText.split(',')
                 var chatRoomNameElmt = document.getElementById('chatRoomName');
                 while (chatRoomNameElmt.options.length > 0) {
