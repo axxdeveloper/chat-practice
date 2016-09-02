@@ -1,15 +1,12 @@
 # chat-practice
-It is a practice to implement chat service by Scala and Akka
+It is a practice to implement chat service by Java and JGroups
 
 # Library version
-Scala-2.11.8 <br>
-Akka-2.4.1
+jgroups-3.6.6.Final
 
 # How to use
-* Prepare scala and akka environment
-* Run WebServer.scala
-* Execute browser, Input URL: http://127.0.0.1:8080
-* Input message in text field
-* Messagea will be displayed in textarea
-* You can try to open more browsers to talk
-* Limitation: Only 5 messages will be kept in server, so messages may be missing if there were too many messages
+* Prepare Java 8 environment
+* Run more than one ChatSample.java instances
+* Input message in console
+* You can see the messages printed in every console
+* You can start new ChatSample and messages history will be printed in new started console
