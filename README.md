@@ -10,3 +10,6 @@ jgroups-3.6.6.Final
 * Input message in console
 * You can see the messages printed in every console
 * You can start new ChatSample and messages history will be printed in new started console
+
+# Reference
+[The JGroups tutorial](http://jgroups.org/tutorial4/index.html)
